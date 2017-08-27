@@ -8,8 +8,7 @@ module Instruction_Fetch(
     output reg [3:0] Pc_4
     );
 
-reg [3:0] address=1;
-
+reg [3:0] address=0;
 
 always@*begin
 Pc_4<=address+1;
