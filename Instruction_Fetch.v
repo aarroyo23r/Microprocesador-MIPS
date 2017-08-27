@@ -9,6 +9,8 @@ module Instruction_Fetch(
     );
 
 reg [3:0] address=4'h0;
+reg [3:0]PC=4'h0;
+
 
 always@*begin
 if(mux_ctrl == 1'b0)begin
@@ -19,6 +21,9 @@ else begin
     address=address; end  
 end 
 
-RAM ram_unit(.clk(clk),.addr(address),.dataIn(),.we(1'b0),.enable(1'b1),.reset(1'b0),.re(1'b1),.dataOut(instruction));
+always@(posedge clk)begin
+    PC<=address;end
+
+RAM ram_unit(.clk(clk),.addr(PC),.dataIn(),.we(1'b0),.enable(1'b1),.reset(1'b0),.re(1'b1),.dataOut(instruction));
     
 endmodule
