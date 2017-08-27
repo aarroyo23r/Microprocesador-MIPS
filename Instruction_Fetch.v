@@ -17,11 +17,11 @@ end
 always@(posedge clk)begin
 if(mux_ctrl == 1'b1)begin
     address<=jp_address; end
-else begin
+else if(mux_ctrl==1'b0) begin
     address<=address+1;end
 end 
 
 
-RAM ram_unit(.clk(clk),.addr(address),.dataIn(),.we(1'b0),.enable(1'b1),.reset(1'b0),.re(1'b1),.dataOut(instruction));
+RAM ram_unit(.clk(clk),.addr(address),.dataIn(0),.we(1'b0),.enable(1'b1),.reset(1'b0),.re(1'b1),.dataOut(instruction));
     
 endmodule
