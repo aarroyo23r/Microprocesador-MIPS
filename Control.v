@@ -6,15 +6,17 @@ module Control(
     input wire [5:0] Opcode,
     input wire [5:0] Function,
     output reg RegWrite,RegRead,
-    output reg ALU_Op,RegDst,
+    output reg [3:0]ALU_Op,
+    output reg RegDst,
     output reg ALUsrc,
     output reg MemWrite,MemRead,
-    output reg MemtoREg
+    output reg MemtoReg,Muxif, //Muxif indica si hay jump o branch
+    output reg [3:0] s_actual
     );
     
 //----------Variables----------------------------------------------------------------
     
-reg [3:0] s_next;reg [3:0] s_actual=4'hf; //estado inicial apagado
+//reg [3:0] s_next;reg [3:0] s_actual=4'hf; //estado inicial apagado
     
     
 //---------declaración de estados---------------------------------------------------_
@@ -38,42 +40,117 @@ localparam [3:0] s0 = 4'h0, //add
 
 //-----Lógica de reset y de estado siguiente------------------------------------- 
 
-always @(posedge clk,posedge reset)begin
-    if(reset)begin        //si se activa 'reset' se entra a estado donde se apagan todas las señales 
-        s_actual <=s15;end        
+always @*begin
+    if(reset)begin                               //si se activa 'reset' se entra a estado donde se apagan todas las señales 
+        s_actual =s15;end        
     else if(Opcode == 6'h00 && Function ==6'h20)begin
-        s_actual <=s0;end  //condición de salto a estado add
+        s_actual =s0;end                        //condición de salto a estado add
     else if(Opcode == 6'h00 && Function ==6'h24)begin
-        s_actual<=s1;end   //condición de salto a estado and    
+        s_actual=s1;end                         //condición de salto a estado and    
     else if(Opcode == 6'h8)begin
-        s_actual<=s2;end   //condición de salto a estado addi
+        s_actual=s2;end                         //condición de salto a estado addi
     else if(Opcode == 6'hc)begin
-        s_actual <=s3;end  //condición de salto a estado andi
+        s_actual =s3;end                        //condición de salto a estado andi
     else if(Opcode == 6'h2)begin
-        s_actual <=s4;end  //condición de salto a estado jump
+        s_actual =s4;end                        //condición de salto a estado jump
     else if(Opcode == 6'h00 & Function == 6'h8)begin
-        s_actual <=s5;end //condición de salto a estado jr    
+        s_actual =s5;end                        //condición de salto a estado jr    
     else if(Opcode == 6'h23)begin
-        s_actual <=s6;end //condición de salto a estado lw
+        s_actual =s6;end                        //condición de salto a estado lw
     else if(Opcode == 6'h00 && Function ==6'h27)begin
-        s_actual <=s7;end //condición de salto a nor
+        s_actual =s7;end                        //condición de salto a nor
     else if(Opcode == 6'h00 && Function ==6'h25)begin
-        s_actual <=s8;end //condición de salto a or
+        s_actual =s8;end                        //condición de salto a or
     else if(Opcode ==6'hd)begin
-        s_actual <=s9;end //condicion de salto ori
+        s_actual =s9;end                        //condicion de salto ori
     else if(Opcode == 6'h00 && Function == 6'h2a)begin
-        s_actual <=s10;end  //condición de salto slt
+        s_actual =s10;end                       //condición de salto slt
     else if(Opcode == 6'ha)begin
-        s_actual <=s11;end  //condición de salto slti
+        s_actual =s11;end                       //condición de salto slti
     else if(Opcode == 6'h2b)begin
-        s_actual <=s12;end //condición de salto sw
+        s_actual =s12;end                       //condición de salto sw
     else if(Opcode == 6'h00 && Function == 6'h22)begin
-        s_actual <=s13;end //condición de salto a sub
+        s_actual =s13;end                       //condición de salto a sub
     else if(Opcode == 6'h00 && Function == 6'h23)begin
-        s_actual<=s14;end  //condición de salto a subu
+        s_actual=s14;end                        //condición de salto a subu
           
     else
-        s_actual <=s_next;
+        s_actual=s_actual;
 end
+ 
+  
+always@* begin
+    
+    case(s_actual)
+    s15:begin                  //estado apagado
+       RegWrite=1'b1;         //todas las señales de control desactivan cuando estan en 1
+       RegRead =1'b1;
+       RegDst = 1'b1;
+       ALUsrc = 1'b1;
+       MemWrite = 1'b1;
+       MemRead = 1'b1;
+       MemtoReg= 1'b1;
+       Muxif = 1'b0;
+       ALU_Op = 4'b0000;      // Ninguna operación selesccionada
+       end
+    s0:begin                  //estado add
+       RegWrite=1'b0;         //señales de control para instrucción add
+       RegRead =1'b0;                       
+       RegDst = 1'b1;         //guarda el resultado en 'rd' 
+       ALUsrc = 1'b0;
+       MemWrite = 1'b1;
+       MemRead = 1'b1;
+       Muxif = 1'b0;
+       MemtoReg= 1'b0;        //pasa el resultado de la ALU directamente
+       ALU_Op = 4'b0001;      // Operación suma
+       end
+    s1:begin                  //estado and
+       RegWrite=1'b0;         //señales de control para instrucción and
+       RegRead =1'b0;
+       RegDst = 1'b1;         //guarda el resultado en 'rd'
+       ALUsrc = 1'b0;
+       MemWrite = 1'b1;
+       MemRead = 1'b1;
+       Muxif = 1'b0;
+       MemtoReg= 1'b0;        //pasa el resultado de la ALU directamente
+       ALU_Op = 4'b0010;      // Operación and
+       end
+    s2:begin                  //estado addi
+       RegWrite=1'b0;         //señales de control para instrucción addi
+       RegRead =1'b0;
+       RegDst = 1'b0;         //guarda el resultado en 'rt'
+       ALUsrc = 1'b1;         //pasa el dato Inmediate a la ALU
+       MemWrite = 1'b1;
+       MemRead = 1'b1;
+       Muxif = 1'b0;
+       MemtoReg= 1'b0;        //pasa el resultado de la ALU directamente
+       ALU_Op = 4'b0001;      // Operación suma
+       end
+    s3:begin                  //estado andi
+       RegWrite=1'b0;         //señales de control para instrucción andi
+       RegRead =1'b0;
+       RegDst = 1'b0;         //guarda el resultado en 'rt'
+       ALUsrc = 1'b1;         //pasa el dato Inmediate a la ALU
+       MemWrite = 1'b1;
+       MemRead = 1'b1;
+       Muxif = 1'b0;
+       MemtoReg= 1'b0;        //pasa el resultado de la ALU directamente
+       ALU_Op = 4'b0010;      // Operación and
+       end
+    s4:begin                  //estado jump
+       RegWrite=1'b1;         //señales de control para instrucción jump
+       RegRead =1'b1;
+       RegDst = 1'b0;         //no importa
+       ALUsrc = 1'b1;         //no importa
+       MemWrite = 1'b1;
+       MemRead = 1'b1;
+       Muxif = 1'b1;          //pasa la nueva dirección de salto   
+       MemtoReg= 1'b0;        //no importa
+       ALU_Op = 4'b0000;      // Ninguna operación
+       end   
+    endcase
+
+end
+
   
 endmodule
