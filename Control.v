@@ -21,21 +21,21 @@ module Control(
     
 //---------declaración de estados---------------------------------------------------_
 
-localparam [3:0] s0 = 4'h0, //add
-                 s1 = 4'h1, //and
-                 s2 = 4'h2, //addi
-                 s3 = 4'h3, //andi
-                 s4 = 4'h4, //jump
-                 s5 = 4'h5, //jr
-                 s6 = 4'h6, //lw
-                 s7 = 4'h7, //nor
-                 s8 = 4'h8, //or
-                 s9 = 4'h9, //ori
-                 s10 = 4'ha,//slt
-                 s11 = 4'hb, //slti
-                 s12 = 4'hc, //sw
+localparam [3:0] s0 = 4'h0, //add*
+                 s1 = 4'h1, //and*
+                 s2 = 4'h2, //addi*
+                 s3 = 4'h3, //andi*
+                 s4 = 4'h4, //jump*
+                 s5 = 4'h5, //jr*
+                 s6 = 4'h6, //lw*
+                 s7 = 4'h7, //nor*
+                 s8 = 4'h8, //or*
+                 s9 = 4'h9, //ori*
+                 s10 = 4'ha,//slt*
+                 s11 = 4'hb, //slti*
+                 s12 = 4'hc, //sw*
                  s13 = 4'hd, //sub
-                 s14 = 4'he, //subi
+                 s14 = 4'he, //subu
                  s15 = 4'hf; //apagada
 
 //-----Lógica de reset y de estado siguiente------------------------------------- 
@@ -147,7 +147,120 @@ always@* begin
        Muxif = 1'b1;          //pasa la nueva dirección de salto   
        MemtoReg= 1'b0;        //no importa
        ALU_Op = 4'b0000;      // Ninguna operación
-       end   
+       end
+       
+       
+       //TENER CUIDADO CON JR, PORQUE LA LÓGICA QUE OCUPA NO ESTA EN LA IMAGEN DEL MICRO A IMPLEMENTAR, FALTA UN CABLE
+    s5:begin                  //estado jr
+       RegWrite=1'b1;         //señales de control para instrucción jr
+       RegRead =1'b0;
+       RegDst = 1'b0;         //no importa
+       ALUsrc = 1'b1;         //no importa
+       MemWrite = 1'b1;
+       MemRead = 1'b1;
+       Muxif = 1'b1;          //pasa la nueva dirección de salto   
+       MemtoReg= 1'b0;        //no importa
+       ALU_Op = 4'b0000;      // Ninguna operación
+       end
+    s6:begin                  //estado lw
+       RegWrite=1'b0;         //señales de control para instrucción lw
+       RegRead =1'b0;
+       RegDst = 1'b0;         //guarda resultado en 'rt'
+       ALUsrc = 1'b1;         //pasa Inmediate para el cálculo de la dirección
+       MemWrite = 1'b1;
+       MemRead = 1'b0;        //se lee dato de memoria
+       Muxif = 1'b0;             
+       MemtoReg= 1'b1;        //pasa dato cargado de memoria
+       ALU_Op = 4'b0001;      // Operación suma para cálculo de dirección
+       end
+     s7:begin                  //estado nor
+       RegWrite=1'b0;         //señales de control para instrucción nor
+       RegRead =1'b0;
+       RegDst = 1'b1;         //guarda resultado en 'rd'
+       ALUsrc = 1'b0;         
+       MemWrite = 1'b1;
+       MemRead = 1'b1; 
+       Muxif = 1'b0;             
+       MemtoReg= 1'b0;        //pasa dato proveniente de la ALU
+       ALU_Op = 4'b0011;      // Operación logica NOR
+       end
+    s8:begin                  //estado or
+       RegWrite=1'b0;         //señales de control para instrucción or
+       RegRead =1'b0;
+       RegDst = 1'b1;         //guarda resultado en 'rd'
+       ALUsrc = 1'b0;         
+       MemWrite = 1'b1;
+       MemRead = 1'b1; 
+       Muxif = 1'b0;             
+       MemtoReg= 1'b0;        //pasa dato proveniente de la ALU
+       ALU_Op = 4'b0100;      // Operación logica OR
+       end
+    s9:begin                  //estado ori
+       RegWrite=1'b0;         //señales de control para instrucción ori
+       RegRead =1'b0;
+       RegDst = 1'b0;         //guarda resultado en 'rt'
+       ALUsrc = 1'b1;         //pasa dato Inmediate
+       MemWrite = 1'b1;
+       MemRead = 1'b1; 
+       Muxif = 1'b0;             
+       MemtoReg= 1'b0;        //pasa dato proveniente de la ALU
+       ALU_Op = 4'b0100;      // Operación logica OR
+       end
+     s10:begin                //estado SLT
+       RegWrite=1'b0;         //señales de control para instrucción SLT
+       RegRead =1'b0;
+       RegDst = 1'b1;         //guarda resultado en 'rd'
+       ALUsrc = 1'b0;         
+       MemWrite = 1'b1;
+       MemRead = 1'b1; 
+       Muxif = 1'b0;             
+       MemtoReg= 1'b0;        //pasa dato proveniente de la ALU- es 1 o 0
+       ALU_Op = 4'b0101;      // Operación de comparación 'menor que'
+       end                          
+     s11:begin                //estado SLTI
+       RegWrite=1'b0;         //señales de control para instrucción SLTI
+       RegRead =1'b0;
+       RegDst = 1'b0;         //guarda resultado en 'rt'
+       ALUsrc = 1'b1;         //pasa dato Inmediate
+       MemWrite = 1'b1;
+       MemRead = 1'b1; 
+       Muxif = 1'b0;             
+       MemtoReg= 1'b0;        //pasa dato proveniente de la ALU- es 1 o 0
+       ALU_Op = 4'b0101;      //Operación de comparación 'menor que'
+       end                          
+    s12:begin                  //estado SW
+       RegWrite=1'b1;         //señales de control para instrucción SW
+       RegRead =1'b0;
+       RegDst = 1'b0;         //guarda resultado en 'rt'
+       ALUsrc = 1'b1;         //pasa dato Inmediate para cálculo de dirección 
+       MemWrite = 1'b0;
+       MemRead = 1'b1; 
+       Muxif = 1'b0;             
+       MemtoReg= 1'b0;        //no importa
+       ALU_Op = 4'b0101;      // Operación de suma para cálculo de dirección
+       end                         
+     s13:begin                //estado sub
+       RegWrite=1'b0;         //señales de control para instrucción sub
+       RegRead =1'b0;
+       RegDst = 1'b1;         //guarda resultado en 'rd'
+       ALUsrc = 1'b0;        
+       MemWrite = 1'b1;
+       MemRead = 1'b1; 
+       Muxif = 1'b0;             
+       MemtoReg= 1'b0;        //pasa dato proveniente de la ALU
+       ALU_Op = 4'b0111;      // Operación de resta signed
+       end
+     s14:begin                //estado subu
+       RegWrite=1'b0;         //señales de control para instrucción subu
+       RegRead =1'b0;
+       RegDst = 1'b1;         //guarda resultado en 'rd'
+       ALUsrc = 1'b0;        
+       MemWrite = 1'b1;
+       MemRead = 1'b1; 
+       Muxif = 1'b0;             
+       MemtoReg= 1'b0;        //pasa dato proveniente de la ALU
+       ALU_Op = 4'b1000;      // Operación de resta unsigned
+       end             
     endcase
 
 end
