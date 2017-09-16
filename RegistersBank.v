@@ -26,7 +26,6 @@ always @(posedge clk)
         dataOutA<=dataOutA; //Podria ponerse en alta impedancia
         dataOutB<=dataOutB;
         end
-
     else
         begin             //Modo Lectura
         dataOutA <= registers[addrRead_A];
