@@ -8,7 +8,7 @@
 //  If a reset or enableble is not necessary, it may be tied off or removed from the code.
 //  Modify the parameters for the desired RAM characteristics.
 
-module RAM #(
+module DataMemory #(
   parameter RAM_WIDTH = 32,                       // Specify RAM data width
   parameter RAM_DEPTH = 1024,                     // Specify RAM depth (number of entries)
   parameter RAM_PERFORMANCE = "HIGH_PERFORMANCE", // Select "HIGH_PERFORMANCE" or "LOW_LATENCY"
