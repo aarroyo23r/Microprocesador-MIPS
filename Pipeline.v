@@ -22,6 +22,30 @@ module Pipeline(
   input [31:0] memRead, //Dato leido de memoria
 
   //Outputs
+
+  //______________________________________________________________________________
+  //Definición de los Registros del Pipeline y su organización
+  //______________________________________________________________________________
+  output  [31:0]if_id[1:0],  //Reg1=instruccion
+                          //Reg2=PC+4
+  output  [31:0] id_ex[4:0],  // reg0=direccion de rd[15:11],rt [20:16] PC+4 y señales de control
+                          // reg1 = dato leido rs
+                          // reg2 = dato leido rt
+                          // reg3 = immediate
+                          // reg4 = address(jump) [25:0]
+
+  output  [31:0] ex_mem [3:0], //reg1 = control, write register, zero flag
+                           //reg2 = dato leido de la segunda salida del banco de reg
+                           //reg3 = Resultado de la ALU
+                           //reg4 = Branch address
+
+
+  output  [31:0] mem_wb [2:0] //reg1= Resultado de la ALU
+                            //reg2= Dato leido de la memoria
+                            //reg3= Registro a escribir y control
+
+
+  /*
   //IF/ID
   output  [31:0] if_id_out_instruccion,  //Salidas del Fetch
   output  [4:0] if_id_out_PC_next,
@@ -37,7 +61,6 @@ module Pipeline(
   output [4:0] id_ex_out_rt_direction, //Direccion de rt y rd para elegir donde
   output [4:0] id_ex_out_rd_direction,// guardar datos en el banco de registros
   //EX/MEM
-  output [4:0] ex_mem_out_write_register, //seleccion de que posicion del banco de registros se escribe
   output [31:0] ex_mem_out_readData2, //Dato2 leido del banco de registros
   output [31:0] ex_mem_out_ALU_result,//Resultado de la ALU
   output [31:0] ex_mem_out_branchAddr,//Dirección de branch
@@ -47,29 +70,9 @@ module Pipeline(
   output [31:0] mem_wb_out_ALU_result,//Resultado de la ALU
   output [31:0] mem_wb_out_readData2,//Dato leido de memoria
   output [4:0] mem_wb_out_write_register,//Direccion del Registro en el que se va a guardar
-  output [10:0] mem_wb_out_control//Señales de control
+  output [10:0] mem_wb_out_control//Señales de control*/
   );
 
-//______________________________________________________________________________
-//Definición de los Registros del Pipeline y su organización
-//______________________________________________________________________________
-reg [31:0]if_id[1:0];   //Reg1=instruccion
-                        //Reg2=PC+4
-reg [31:0] id_ex[4:0];  // reg0=direccion de rd[15:11],rt [20:16] PC+4 y señales de control
-                        // reg1 = dato leido rs
-                        // reg2 = dato leido rt
-                        // reg3 = immediate
-                        // reg4 = address(jump) [25:0]
-
-reg [31:0] ex_mem [3:0]; //reg1 = control, write register, zero flag
-                         //reg2 = dato leido de la segunda salida del banco de reg
-                         //reg3 = Resultado de la ALU
-                         //reg4 = Branch address
-
-
-reg [31:0] mem_wb [2:0]; //reg1= Resultado de la ALU
-                          //reg2= Dato leido de la memoria
-                          //reg3= Registro a escribir y control
 
 //______________________________________________________________________________
 //Inicializando los registros en 0
@@ -139,6 +142,7 @@ always @( posedge clk)
         mem_wb[2][15:5]<=ex_mem[0][10:0];//Señales de control
   end
 
+
 //______________________________________________________________________________
 //Asignacion de las salidas y reset
 //______________________________________________________________________________
@@ -158,7 +162,7 @@ assign id_ex_out_rt_direction =(!reset) ? id_ex[0][20:16]: 0;
 assign id_ex_out_rd_direction =(!reset) ? id_ex[0][15:11]: 0;
 assign id_ex_out_control =(!reset) ? id_ex[0] [10:0]: 0;
 //EX/MEM
-assign ex_mem_out_write_register =(!reset) ? ex_mem[0][15:11]: 0;
+
 assign ex_mem_out_readData2 =(!reset) ? ex_mem[1]: 0;
 assign ex_mem_out_ALU_result =(!reset) ? ex_mem[2]: 0;
 assign ex_mem_out_branchAddr =(!reset) ? ex_mem[3]: 0;

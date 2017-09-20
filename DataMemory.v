@@ -8,10 +8,10 @@
 //  If a reset or enableble is not necessary, it may be tied off or removed from the code.
 //  Modify the parameters for the desired RAM characteristics.
 
-module RAM #(
+module DataMemory #(
   parameter RAM_WIDTH = 32,                       // Specify RAM data width
   parameter RAM_DEPTH = 1024,                     // Specify RAM depth (number of entries)
-  parameter RAM_PERFORMANCE = "HIGH_PERFORMANCE", // Select "HIGH_PERFORMANCE" or "LOW_LATENCY"
+  parameter RAM_PERFORMANCE = "LOW_LATENCY", // Select "HIGH_PERFORMANCE" or "LOW_LATENCY"
   parameter INIT_FILE = ""                        // Specify name/location of RAM initialization file if using one (leave blank if not)
 ) (
   input [clogb2(RAM_DEPTH-1)-1:0] addr,  // Address bus, width determined from RAM_DEPTH
@@ -44,8 +44,13 @@ module RAM #(
     if (enable) begin
       if (we)
         BRAM[addr] <= dataIn;
-      ram_data <= BRAM[addr];
     end
+
+    always @*
+      if (enable) begin
+        if (re)
+        ram_data = BRAM[addr];
+      end
 
   //  The following code generates HIGH_PERFORMANCE (use output register) or LOW_LATENCY (no output register)
   generate

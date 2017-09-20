@@ -5,7 +5,7 @@ module Micro (
   input wire clk,
   input wire reset, //Reset general
 
- 
+
   //IF/ID
   output  [31:0] if_id_out_instruccion,  //Salidas del Fetch
   output  [4:0] if_id_out_PC_next,
@@ -102,7 +102,7 @@ module Micro (
 //Inicio del Micro
 //Logica para llenar el Pipeline
 reg run;//Variable activa cuando se esta llenando el Pipeline
-REG [4:0] PC_toFetch; //PC siguiente correcto
+reg [4:0] PC_toFetch; //PC siguiente correcto
 
 always@(posedge clk)
 if (reset) begin  //Reset inicial necesario **********##########********
@@ -240,7 +240,7 @@ extSign=0;end
 //Fin de la extencion de signo
 
 registers register_bank_unit(.clk(clk),.addrRead_A(if_id[0][25:21]),.addrRead_B(if_id[0][20:16]),
-  .addrWrite(mem_wb[2][4:0]),.dataIn(Write_data),.write_en(RegWrite),.dataOutA(rs_data),.dataOutB(rt_data),.read_en(RegRead)   //Dato registro B
+  .addrWrite(mem_wb[2][4:0]),.dataIn(Write_data),.write_en(mem_wb[2][12]),.dataOutA(rs_data),.dataOutB(rt_data),.read_en(RegRead)   //Dato registro B
   );
 //Fin Decode___________________________________________________________________________
 
@@ -278,8 +278,11 @@ Top_Exe exe_unit(
 
 //Agregar branch
 assign jumpBranch = ex_mem[0][0] && ex_mem[0][16];
+wire en_mem;
 
-DataMemory memoriaDatos_unit (.addr(ex_mem[2]),.dataIn(ex_mem[1]),.clk(clk),.we(ex_mem[0][3]),.enable(1),.reset(reset),                           // Output reset (does not affect memory contents)
+assign en_mem=ex_mem[0][3] ||ex_mem[0][2];
+
+DataMemory memoriaDatos_unit (.addr(ex_mem[2][9:0]),.dataIn(ex_mem[1]),.clk(clk),.we(ex_mem[0][3]),.enable(en_mem),.reset(reset),                           // Output reset (does not affect memory contents)
   .re(ex_mem[0][2]),.dataOut(memRead)          // RAM output data
 );
 

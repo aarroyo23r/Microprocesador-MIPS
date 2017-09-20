@@ -10,7 +10,7 @@
 
 module RAM #(
   parameter RAM_WIDTH = 32,                       // Specify RAM data width
-  parameter RAM_DEPTH = 16,                     // Specify RAM depth (number of entries)
+  parameter RAM_DEPTH = 17,                     // Specify RAM depth (number of entries)
   parameter RAM_PERFORMANCE = "HIGH_PERFORMANCE", // Select "HIGH_PERFORMANCE" or "LOW_LATENCY"
   parameter INIT_FILE = "data.txt"                // Specify name/location of RAM initialization file if using one (leave blank if not)
 ) (
