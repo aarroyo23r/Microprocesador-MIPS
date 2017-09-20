@@ -12,8 +12,14 @@ module Instruction_Fetch(
 reg [4:0] address =5'h0;
 
 always@(posedge clk)begin
+if (mux_ctrl)begin
+address<=jp_address;
+end
+else begin
 address<=PC;
 end
+end
+
 
 always@* begin
 if(mux_ctrl == 1'b1)begin

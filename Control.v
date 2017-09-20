@@ -193,7 +193,7 @@ always@* begin
        MemRead = 1'b0;
        Muxif = 1'b0;
        MemtoReg= 1'b0;        //pasa dato proveniente de la ALU
-       ALU_Op = 4'b0100;      // Operación logica OR
+       ALU_Op = 4'b0010;      // Operación logica OR
        end
     s9:begin                  //estado ori
        RegWrite=1'b1;         //señales de control para instrucción ori
@@ -207,8 +207,8 @@ always@* begin
        ALU_Op = 4'b0010;      // Operación logica OR
        end
      s10:begin                //estado SLT
-       RegWrite=1'b0;         //señales de control para instrucción SLT
-       RegRead =1'b0;
+       RegWrite=1'b1;         //señales de control para instrucción SLT
+       RegRead =1'b1;
        RegDst = 1'b1;         //guarda resultado en 'rd'
        ALUsrc = 1'b0;
        MemWrite = 1'b1;
@@ -248,7 +248,7 @@ always@* begin
        MemRead = 1'b0;
        Muxif = 1'b0;
        MemtoReg= 1'b0;        //pasa dato proveniente de la ALU
-       ALU_Op = 4'b0111;      // Operación de resta signed
+       ALU_Op = 4'b0100;      // Operación de resta signed
        end
      s14:begin                //estado subu
        RegWrite=1'b1;         //señales de control para instrucción subu
@@ -259,7 +259,7 @@ always@* begin
        MemRead = 1'b0;
        Muxif = 1'b0;
        MemtoReg= 1'b0;        //pasa dato proveniente de la ALU
-       ALU_Op = 4'b1000;      // Operación de resta unsigned
+       ALU_Op = 4'b0100;      // Operación de resta unsigned
        end
 
     endcase

@@ -102,8 +102,8 @@ integer i;
   reset=1;//Reset inicial obligatorio
   #20;
   reset=0;
-  print[mem_wb_out_write_register] = {mem_wb_out_write_register,0,dataWrite};
-  #450;
+  print[mem_wb_out_write_register] = {mem_wb_out_write_register,dataWrite};
+  #500;
   $writememh("Resultados.txt", print);
   $finish;
   end

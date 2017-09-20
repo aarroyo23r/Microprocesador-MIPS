@@ -41,7 +41,7 @@ input wire [2:0] ALUcontrol, //Señal para seleccionar que va a hacer la ALU
 input wire Regdst, //Señal que controla el mux que selecciona entre los registros rd y rt
 input ALU_enable, //Señal para saber si la ALU puede o no trabajar
 //////////////////////////////////////////////////////////////////////
-
+output reg set,
 
 //////////////////Salidas del EXE////////////////////////////////////
 output  reg  [4:0] Mux_1,//La salida de este mux va directo al pipeline
@@ -94,15 +94,20 @@ reg [31:0] rs_mux;
 ////////////////////////////ALU//////////////////////////
 
 reg [31:0] Outreg;
-reg [31:0] temp;
 
     always @(posedge clk)
-    if (((rs_mux - Mux_2)==0) || (rs_mux<Mux_2))begin
-    Zero_flag<=1;
+    if(ALUcontrol==3'b101)begin
+      set<=1;
+      if (((rs_mux - Mux_2)==0) | (rs_mux<Mux_2))begin
+        Zero_flag<=1;
+         end
+       else begin
+          Zero_flag<=0;
+        end
     end
 
     else begin
-    Zero_flag<=0;
+    set<=0;
     end
 
     always @*

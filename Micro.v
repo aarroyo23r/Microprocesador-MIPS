@@ -103,6 +103,7 @@ module Micro (
 //******************************************************************************
 //Inicio del Micro
 //Logica para llenar el Pipeline
+
 reg run;//Variable activa cuando se esta llenando el Pipeline
 reg [4:0] PC_toFetch; //PC siguiente correcto
 
@@ -125,7 +126,32 @@ else if (PC_toFetch>=4 && mem_wb[2][20:16]==0) //Pipeline lleno
 run<=0;
 else
 run<=run;
+/*reg run=1;//Variable activa cuando se esta llenando el Pipeline
+reg [4:0] PC_toFetch=0; //PC siguiente correcto
 
+always@(posedge clk)
+if (reset) begin  //Reset inicial necesario **********##########********
+PC_toFetch<=0;
+end
+else if (id_ex[0][0]) begin //jump
+PC_toFetch<=id_ex[1][4:0];
+end
+else if (run)begin
+PC_toFetch<=PC_toFetch+1;//Siguiente PC hasta que se llene el Pipeline
+end
+
+else begin
+PC_toFetch<=mem_wb[2][20:16];
+end
+//**************Hay que generalizar el apagado del run
+always @(posedge clk)
+if (reset | senalesControl[0])
+run<=1;
+else if (PC_toFetch==6 ) //Pipeline lleno
+run<=0;
+else
+run<=run;
+*/
 //******************************************************************************
 //Pipeline
 //******************************************************************************
@@ -196,6 +222,8 @@ always @( posedge clk)
         mem_wb[2][4:0]<=ex_mem[0][15:11];//Dirección del registro de escritura
         mem_wb[2][15:5]<=ex_mem[0][10:0];//Señales de control
         mem_wb[2][20:16]<=ex_mem[3][9:5];//PC+4
+        mem_wb[2][21]<=ex_mem[0][16];//zero flag
+        mem_wb[2][22]<=set;//set indica si es una instruccion set
   end
 
 
@@ -222,7 +250,7 @@ Control Control_unit(.Opcode(if_id[0][31:26]),.Function(if_id[0][5:0]),.RegWrite
  //------------------------------------------------------------------------------
  //Fetch___________________________________________________________________________
 
- Instruction_Fetch fetch_unit(.clk(clk),.mux_ctrl(Muxif),.instruction(instruccion),
+ Instruction_Fetch fetch_unit(.clk(clk),.mux_ctrl(senalesControl[0]),.instruction(instruccion),
                               .PC_4(PC_next),.jp_address(id_ex[1][4:0]),.PC(PC_toFetch));
 
 
@@ -254,6 +282,7 @@ registers register_bank_unit(.clk(clk),.addrRead_A(if_id[0][25:21]),.addrRead_B(
 //Datos
 //wire  memAdelant_rs,memAdelant_rt,wbAdelant_rs,wbAdelant_rt;
 
+wire set;
 
 UnidadAdelantamiento UnidadAdelantamiento_unit (
  .control(id_ex[0] [10:0]),.reset(reset),.id_ex_rs(id_ex[4][30:26]),.id_ex_rt(id_ex[0][20:16]),
@@ -266,7 +295,7 @@ UnidadAdelantamiento UnidadAdelantamiento_unit (
 
 Top_Exe exe_unit(
   /////////////////////Unidad de Adelantamiento//////////////////////////////////
-  .memAdeltantado(ex_mem[2]),.wbAdelantado(Write_data),
+  .set(set),.memAdeltantado(ex_mem[2]),.wbAdelantado(Write_data),
 
 .memAdelant_rt(memAdelant_rt),.wbAdelant_rt(wbAdelant_rt),
 .memAdelant_rs(memAdelant_rs),.wbAdelant_rs(wbAdelant_rs),
@@ -314,7 +343,7 @@ DataMemory memoriaDatos_unit (.addr(ex_mem[2][9:0]),.dataIn(ex_mem[1]),.clk(clk)
 //WB___________________________________________________________________________
 
 
-Write_back writeBack_unit (.MemtoReg(mem_wb[2][6]),.data_MEM(mem_wb[0]),.ALU_out(mem_wb[1]),.Write_data(Write_data)
+Write_back writeBack_unit (.zeroFlag(mem_wb[2][21]),.set(mem_wb[2][22]),.MemtoReg(mem_wb[2][6]),.data_MEM(mem_wb[0]),.ALU_out(mem_wb[1]),.Write_data(Write_data)
 
 );
 
