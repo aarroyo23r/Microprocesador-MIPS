@@ -30,6 +30,8 @@ input wire [4:0] Reg_RD,// Registro rd que va por el mux 1, lo controlaRegDst (E
 input wire [4:0] Reg_RT,//Registro rt que tambien va a al mismo mux del anterior.
 input wire [31:0] Dato_1,//Dato que viene del Read data 1
 input wire [31:0] Dato_2,//Dato que viene del Read data 2
+input wire  memAdelant_rs,memAdelant_rt,wbAdelant_rs,wbAdelant_rt,
+input wire [31:0] memAdeltantado,wbAdelantado,
 //////////////////////////////////////////////////////////////////////
 
 /////////////////Señales de control de cada parte////////////////////
@@ -60,10 +62,29 @@ reg [31:0] Mux_2; // Este registro es para almacenar la salida del mux del inmed
 
 /////////////////////////////////////////////////////////
 
+//adelantamiento
+reg [31:0] rs_mux;
+//Mux rs
+
+
+         always @*
+           if (memAdelant_rs)
+                rs_mux =memAdeltantado;
+           else if (wbAdelant_rs)
+                rs_mux = wbAdelantado;
+           else
+                rs_mux = Dato_1; //Si no, escoge el Dato_2
+
 //////////////Mux 2, para la ALU////////////////////
+
          always @*
            if (ALUsrc)
                 Mux_2 = In; //Si ALUsrc es 1, escoge el inmediato
+           else if (memAdelant_rt)
+                Mux_2 =memAdeltantado;
+           else if (wbAdelant_rt)
+                Mux_2 = wbAdelantado;
+
            else
                 Mux_2 = Dato_2; //Si no, escoge el Dato_2
 
@@ -76,7 +97,7 @@ reg [31:0] Outreg;
 reg [31:0] temp;
 
     always @(posedge clk)
-    if (((Dato_1 - Mux_2)==0) || (Dato_1<Mux_2))begin
+    if (((rs_mux - Mux_2)==0) || (rs_mux<Mux_2))begin
     Zero_flag<=1;
     end
 
@@ -90,22 +111,22 @@ reg [31:0] temp;
       begin
          case (ALUcontrol)
             4'b0000:begin
-            Outreg = Dato_1 + Mux_2;
+            Outreg = rs_mux + Mux_2;
             end
             4'b0001: begin
-            Outreg = Dato_1 & Mux_2;
+            Outreg = rs_mux & Mux_2;
             end
             4'b0010: begin
-            Outreg = Dato_1 | Mux_2;
+            Outreg = rs_mux | Mux_2;
             end
             4'b0011: begin
-            Outreg = ~(Dato_1 | Mux_2);
+            Outreg = ~(rs_mux | Mux_2);
             end
             4'b0100: begin
-            Outreg = Dato_1 + Mux_2 ; //Aquí va la resta sin complemento a2
+            Outreg = rs_mux - Mux_2 ; //Aquí va la resta sin complemento a2
             end
             4'b0101: begin
-            Outreg = Dato_1 - Mux_2; //Esto hace la resta con complemento a2
+            Outreg = rs_mux - Mux_2; //Esto hace la resta con complemento a2
             end
             default: Outreg = 0 ;
          endcase

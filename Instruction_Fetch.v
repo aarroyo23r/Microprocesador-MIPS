@@ -17,7 +17,7 @@ end
 
 always@* begin
 if(mux_ctrl == 1'b1)begin
-    PC_4=jp_address; end
+    PC_4=jp_address; end  //Esta jr
 else if(mux_ctrl==1'b0) begin
     PC_4=address+4;end //Se modifico a P+4 para lograr llenar el pipeline del micro correctamente
 end

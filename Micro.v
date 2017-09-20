@@ -35,7 +35,9 @@ module Micro (
   output [4:0] mem_wb_out_PC4,
 
   output [31:0] dataWrite,
-  output [4:0] PC_toFetch_out
+  output [4:0] PC_toFetch_out,
+
+  output   memAdelant_rs,memAdelant_rt,wbAdelant_rs,wbAdelant_rt
   );
 
 
@@ -168,8 +170,9 @@ always @(posedge clk)
         id_ex[1] <= rs_data;
         id_ex[2] <= rt_data;
         id_ex[3] <= extSign;
-        //id_ex[4][15:0] <= if_id[0][15:0];//Aqui tambien se podria agregar PC+4 para aumentar el numero de instrucciones posibles
+        id_ex[4][25:0] <= if_id[0][15:0];//Aqui tambien se podria agregar PC+4 para aumentar el numero de instrucciones posibles
         //de la instruccion ejecutandose en el decode y se tiene que pasar al exe
+        id_ex[4][30:26]<=if_id[0][25:21];// Direccion de escritura rs
         end
 
 //EX/MEM
@@ -219,8 +222,8 @@ Control Control_unit(.Opcode(if_id[0][31:26]),.Function(if_id[0][5:0]),.RegWrite
  //------------------------------------------------------------------------------
  //Fetch___________________________________________________________________________
 
- Instruction_Fetch fetch_unit(.clk(clk),.mux_ctrl(jumpBranch),.instruction(instruccion),
-                              .PC_4(PC_next),.jp_address(ex_mem[3][4:0]),.PC(PC_toFetch));
+ Instruction_Fetch fetch_unit(.clk(clk),.mux_ctrl(Muxif),.instruction(instruccion),
+                              .PC_4(PC_next),.jp_address(id_ex[1][4:0]),.PC(PC_toFetch));
 
 
 
@@ -244,8 +247,29 @@ registers register_bank_unit(.clk(clk),.addrRead_A(if_id[0][25:21]),.addrRead_B(
   );
 //Fin Decode___________________________________________________________________________
 
-//Exe_
+//Exe_**************************************************************************
+
+//Unidad de adelantamiento _______________________________________________________________
+
+//Datos
+//wire  memAdelant_rs,memAdelant_rt,wbAdelant_rs,wbAdelant_rt;
+
+
+UnidadAdelantamiento UnidadAdelantamiento_unit (
+ .control(id_ex[0] [10:0]),.reset(reset),.id_ex_rs(id_ex[4][30:26]),.id_ex_rt(id_ex[0][20:16]),
+ .ex_mem_regWrite(ex_mem[0][15:11]),.mem_wb_regWrite(mem_wb[2][4:0]),
+
+  .memAdelant_rs(memAdelant_rs),.memAdelant_rt(memAdelant_rt),
+  .wbAdelant_rs(wbAdelant_rs),.wbAdelant_rt(wbAdelant_rt)
+);
+
+
 Top_Exe exe_unit(
+  /////////////////////Unidad de Adelantamiento//////////////////////////////////
+  .memAdeltantado(ex_mem[2]),.wbAdelantado(Write_data),
+
+.memAdelant_rt(memAdelant_rt),.wbAdelant_rt(wbAdelant_rt),
+.memAdelant_rs(memAdelant_rs),.wbAdelant_rs(wbAdelant_rs),
 /////////////////////Entradas del EXE//////////////////////////////////
 .clk(clk),
 .In(id_ex[3]),
