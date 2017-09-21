@@ -260,7 +260,7 @@ Control Control_unit(.Opcode(if_id[0][31:26]),.Function(if_id[0][5:0]),.RegWrite
 
 //Extención de signo
 
-assign sigTemp = (if_id[0][15]) ? 16'hffff : 0;
+assign sigTemp = (if_id[0][15]) ? 16'hffff : 16'h0000;
 
 always @*
 if (!reset)begin
