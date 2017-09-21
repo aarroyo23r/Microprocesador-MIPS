@@ -37,7 +37,7 @@ input wire [31:0] memAdeltantado,wbAdelantado,
 /////////////////Señales de control de cada parte////////////////////
 
 input wire  ALUsrc, //Señal que controla el mux que elige entre el inmediato o el dato 2
-input wire [2:0] ALUcontrol, //Señal para seleccionar que va a hacer la ALU
+input wire [4:0] ALUcontrol, //Señal para seleccionar que va a hacer la ALU
 input wire Regdst, //Señal que controla el mux que selecciona entre los registros rd y rt
 input ALU_enable, //Señal para saber si la ALU puede o no trabajar
 //////////////////////////////////////////////////////////////////////
@@ -95,23 +95,23 @@ reg [31:0] rs_mux;
 
 reg [31:0] Outreg;
 
-    always @(posedge clk)
-    if(ALUcontrol==3'b101)begin
-      set<=1;
-      if (((rs_mux - Mux_2)==0) | (rs_mux<Mux_2))begin
-        Zero_flag<=1;
+    always @*
+    if(ALUcontrol==4'b0101)begin
+      set=1;
+      if (rs_mux<Mux_2)begin
+        Zero_flag=1;
          end
        else begin
-          Zero_flag<=0;
+          Zero_flag=0;
         end
     end
 
     else begin
-    set<=0;
+    set=0;
     end
 
-    always @*
 
+    always @*
       if (ALU_enable)
       begin
          case (ALUcontrol)
@@ -130,7 +130,7 @@ reg [31:0] Outreg;
             4'b0100: begin
             Outreg = rs_mux - Mux_2 ; //Aquí va la resta sin complemento a2
             end
-            4'b0101: begin
+            4'b0110: begin
             Outreg = rs_mux - Mux_2; //Esto hace la resta con complemento a2
             end
             default: Outreg = 0 ;
