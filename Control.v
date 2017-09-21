@@ -259,7 +259,7 @@ always@* begin
        MemRead = 1'b0;
        Muxif = 1'b0;
        MemtoReg= 1'b0;        //pasa dato proveniente de la ALU
-       ALU_Op = 4'b0100;      // Operación de resta unsigned
+       ALU_Op = 4'b0110;      // Operación de resta unsigned
        end
 
     endcase
